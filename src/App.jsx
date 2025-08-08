@@ -11,7 +11,8 @@ import './index.css';
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState('');
-    const [campaigns, setCampaigns] = useState([]);
+    const [campaigns, setCampaigns] = useState([]); // Campañas activas
+    const [campaignHistory, setCampaignHistory] = useState([]); // Nuevo estado para el historial
     const [editingCampaign, setEditingCampaign] = useState(null);
 
     const handleLogin = (username) => {
@@ -26,6 +27,7 @@ const App = () => {
 
     const handleCreateCampaign = (newCampaign) => {
         setCampaigns(prev => [...prev, { ...newCampaign, id: Date.now() }]);
+        setEditingCampaign(null);
     };
 
     const handleDeleteCampaign = (id) => {
@@ -34,6 +36,25 @@ const App = () => {
 
     const handleEditCampaign = (campaign) => {
         setEditingCampaign(campaign);
+    };
+
+    // Función para "enviar" la campaña y moverla al historial
+    const handleSendCampaign = (campaignId) => {
+        const campaignToSend = campaigns.find(c => c.id === campaignId);
+        if (campaignToSend) {
+            // Simulación de resultados de envío
+            const sentCount = campaignToSend.contactCount - 1; // Ejemplo
+            const errorCount = 1; // Ejemplo
+            const finishedCampaign = {
+                ...campaignToSend,
+                sentDate: new Date().toISOString(),
+                sentCount,
+                errorCount,
+            };
+
+            setCampaigns(prev => prev.filter(c => c.id !== campaignId));
+            setCampaignHistory(prev => [...prev, finishedCampaign]);
+        }
     };
 
     return (
@@ -51,8 +72,10 @@ const App = () => {
                             isAuthenticated ? (
                                 <CampaignDashboard
                                     campaigns={campaigns}
+                                    campaignHistory={campaignHistory}
                                     onDeleteCampaign={handleDeleteCampaign}
                                     onEditCampaign={handleEditCampaign}
+                                    onSendCampaign={handleSendCampaign}
                                 />
                             ) : (
                                 <Navigate to="/login" />
@@ -65,7 +88,6 @@ const App = () => {
                             isAuthenticated ? (
                                 <CampaignCreator
                                     onSaveCampaign={handleCreateCampaign}
-                                    onCancel={() => setEditingCampaign(null)}
                                     campaignToEdit={editingCampaign}
                                 />
                             ) : (
