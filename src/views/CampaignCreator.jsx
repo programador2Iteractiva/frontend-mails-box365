@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom'; // 👈 Importa el hook useNavigate
 import axios from 'axios';
 import CampaignSettings from '../components/CampaignSettings';
 import FileUploader from '../components/FileUploader';
@@ -12,21 +13,23 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { saveAs } from 'file-saver';
 import Papa from 'papaparse';
 
-const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
-    const [payload, setPayload] = useState({
+const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => { // 👈 Eliminamos onCancel, usaremos useNavigate
+    const navigate = useNavigate(); // 👈 Llama al hook aquí, en el cuerpo del componente
+
+    const [payload, setPayload] = useState(campaignToEdit ? campaignToEdit.payload : {
         campaign_id: 30,
         name: "Nueva Campaña",
         from: "info@dominio.com",
         reply_to: "contacto@dominio.com",
         subject: "¡Asunto de prueba!",
     });
-    const [imageUrl, setImageUrl] = useState(null);
+    const [imageUrl, setImageUrl] = useState(campaignToEdit ? campaignToEdit.imageUrl : null);
     const [imageFile, setImageFile] = useState(null);
-    const [imageLink, setImageLink] = useState("#");
-    const [emailList, setEmailList] = useState([]);
+    const [imageLink, setImageLink] = useState(campaignToEdit ? campaignToEdit.imageLink : "#");
+    const [emailList, setEmailList] = useState(campaignToEdit ? campaignToEdit.emailList : []);
     const [logEnvios, setLogEnvios] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [scheduleTime, setScheduleTime] = useState(null);
+    const [scheduleTime, setScheduleTime] = useState(campaignToEdit ? campaignToEdit.scheduleTime : null);
     const [scheduledJobs, setScheduledJobs] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -46,7 +49,7 @@ const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
             toast.success(`Se han cargado ${data.emailList.length} correos.`);
         }
     };
-
+    
     const handleAddManualEmail = (newEmail) => {
         if (newEmail && !emailList.includes(newEmail)) {
             setEmailList(prev => [...prev, newEmail]);
@@ -54,59 +57,6 @@ const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
         } else if (emailList.includes(newEmail)) {
             toast.warn(`El correo "${newEmail}" ya existe.`);
         }
-    };
-
-    const handleSendEmails = async () => {
-        if (emailList.length === 0 || !imageFile) {
-            toast.error("Por favor, carga los correos y la imagen antes de enviar.");
-            return;
-        }
-
-        toast.info("Subiendo imagen y preparando envíos...");
-
-        const imagePublicUrl = await new Promise(resolve => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(imageFile);
-        });
-
-        const finalPayload = {
-            ...payload,
-            body: `<div style="text-align:center;width: 100%;"><a href="${imageLink}" target="_blank" style="text-align:center"><img src="${imagePublicUrl}" alt="image-email" style="max-width: 100%; height: auto; border-radius: 8px;"></a></div>`
-        };
-
-        setLogEnvios([]);
-        toast.info(`Iniciando envío a ${emailList.length} correos.`);
-
-        for (const email of emailList) {
-            try {
-                // Simulación del envío de correo
-                const isError = Math.random() < 0.1;
-                if (isError) throw new Error("Error de conexión.");
-
-                setLogEnvios(prevLog => [...prevLog, { email, status: '✅ Enviado', message: 'Correo enviado.' }]);
-            } catch (error) {
-                setLogEnvios(prevLog => [...prevLog, { email, status: '❌ Error', message: error.message || 'Error desconocido' }]);
-            }
-        }
-
-        toast.success("¡Proceso de envío completado!");
-    };
-
-    const handleScheduleEmails = () => {
-        if (!scheduleTime) {
-            toast.error("Por favor, selecciona una fecha y hora para programar el envío.");
-            return;
-        }
-        const job = {
-            id: Date.now(),
-            time: scheduleTime,
-            status: 'Programado',
-            count: emailList.length,
-            campaign: payload.name,
-        };
-        setScheduledJobs(prev => [...prev, job]);
-        toast.success(`Campaña programada para el ${new Date(scheduleTime).toLocaleString()}`);
     };
 
     const handleDownloadLog = () => {
@@ -126,24 +76,25 @@ const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
     };
 
     const handleSaveAsCampaign = () => {
-        if (emailList.length === 0 || !imageFile) {
+        if (emailList.length === 0 || !imageUrl) {
             toast.error("La campaña debe tener correos y una imagen.");
             return;
         }
 
         const newCampaign = {
+            id: campaignToEdit ? campaignToEdit.id : Date.now(),
             name: payload.name,
             date: new Date().toISOString(),
             contactCount: emailList.length,
             payload,
             imageLink,
-            // Aquí en un caso real, guardarías la URL de la imagen en un servidor.
-            imageUrl: imageUrl,
+            imageUrl, 
             scheduleTime,
-            // Y otros datos necesarios para recrear la campaña.
+            emailList
         };
 
         onSaveCampaign(newCampaign);
+        navigate('/');
     };
 
     const isSaveButtonEnabled = emailList.length > 0 && imageUrl !== null;
@@ -152,6 +103,7 @@ const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
+                {/* 👈 Corrección aquí: Usamos navigate('/') directamente */}
                 <button onClick={() => navigate('/')} className="text-gray-500 flex items-center hover:text-gray-700 transition">
                     <FaArrowLeft className="mr-2" /> Volver a las campañas
                 </button>
@@ -197,23 +149,24 @@ const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
             <button
                 onClick={handleSaveAsCampaign}
                 disabled={!isSaveButtonEnabled}
-                className={`w-full mt-8 py-4 rounded-2xl font-bold tracking-wide text-lg transition duration-200 ${isSaveButtonEnabled
+                className={`w-full mt-8 py-4 rounded-2xl font-bold tracking-wide text-lg transition duration-200 ${
+                    isSaveButtonEnabled
                         ? 'bg-apple-yellow text-gray-900 hover:bg-yellow-400 transform hover:scale-105'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    }`}
+                }`}
             >
                 Guardar Campaña
             </button>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                <ContactsTable
-                    emailList={filteredEmails}
-                    searchTerm={searchTerm}
+                <ContactsTable 
+                    emailList={filteredEmails} 
+                    searchTerm={searchTerm} 
                     setSearchTerm={setSearchTerm}
                     onAddEmail={handleAddManualEmail}
                 />
             </Modal>
-
+            
             <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
         </div>
     );
