@@ -1,53 +1,78 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onLogin }) => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false); // Estado para simular carga
+    const navigate = useNavigate(); // 2. Obtener la función de navegación
 
-    const handleLogin = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        // Lógica de autenticación simple. En un caso real, harías una llamada a la API.
-        if (username === '1' && password === '1') {
-            onLogin(username);
-        } else {
-            alert('Credenciales incorrectas');
-        }
+        setIsLoading(true); // Activar el estado de carga
+
+        // 3. Simular una llamada a la API con un retraso
+        setTimeout(() => {
+            console.log('Login exitoso para:', { email });
+            onLogin(email)
+        }, 1500); // Retraso de 1.5 segundos
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
-            <div className="bg-white p-10 rounded-3xl shadow-xl w-full max-w-md border border-gray-200">
-                <h2 className="text-3xl font-bold text-center mb-6">Iniciar Sesión</h2>
-                <form onSubmit={handleLogin} className="space-y-6">
+        <main className="flex min-h-screen w-full items-center justify-center bg-slate-100 p-4">
+            <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-xl sm:p-12">
+
+                <header className="mb-8">
+                    <h1 className="text-[2.5rem] font-bold leading-tight text-zinc-900">
+                        Bienvenido
+                    </h1>
+                    <p className="mt-2 text-lg leading-relaxed text-zinc-500">
+                        Ingresa tus credenciales para continuar.
+                    </p>
+                </header>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-gray-700 font-medium mb-1">Usuario</label>
+                        <label htmlFor="email" className="sr-only">Correo electrónico</label>
                         <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-apple-yellow focus:outline-none"
+                            type="email"
+                            id="email"
+                            name="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Correo electrónico"
                             required
+                            className="w-full rounded-lg border-zinc-300 px-4 py-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         />
                     </div>
+
                     <div>
-                        <label className="block text-gray-700 font-medium mb-1">Contraseña</label>
+                        <label htmlFor="password" className="sr-only">Contraseña</label>
                         <input
                             type="password"
+                            id="password"
+                            name="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-apple-yellow focus:outline-none"
+                            placeholder="Contraseña"
                             required
+                            className="w-full rounded-lg border-zinc-300 px-4 py-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         />
                     </div>
-                    <button
-                        type="submit"
-                        className="w-full bg-apple-yellow text-gray-900 font-bold py-3 rounded-xl shadow-md hover:bg-yellow-400 transition"
-                    >
-                        Entrar
-                    </button>
+
+                    <div>
+                        <button
+                            type="submit"
+                            disabled={isLoading} // Deshabilitar el botón mientras carga
+                            className="w-full rounded-lg bg-[#ffcc00] px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-indigo-400"
+                        >
+                            {/* Cambiar el texto del botón si está cargando */}
+                            {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                        </button>
+                    </div>
                 </form>
             </div>
-        </div>
+        </main>
     );
 };
 
