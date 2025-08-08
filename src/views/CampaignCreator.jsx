@@ -46,7 +46,7 @@ const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
             toast.success(`Se han cargado ${data.emailList.length} correos.`);
         }
     };
-    
+
     const handleAddManualEmail = (newEmail) => {
         if (newEmail && !emailList.includes(newEmail)) {
             setEmailList(prev => [...prev, newEmail]);
@@ -61,15 +61,15 @@ const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
             toast.error("Por favor, carga los correos y la imagen antes de enviar.");
             return;
         }
-        
+
         toast.info("Subiendo imagen y preparando envíos...");
-        
+
         const imagePublicUrl = await new Promise(resolve => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result);
             reader.readAsDataURL(imageFile);
         });
-        
+
         const finalPayload = {
             ...payload,
             body: `<div style="text-align:center;width: 100%;"><a href="${imageLink}" target="_blank" style="text-align:center"><img src="${imagePublicUrl}" alt="image-email" style="max-width: 100%; height: auto; border-radius: 8px;"></a></div>`
@@ -138,7 +138,7 @@ const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
             payload,
             imageLink,
             // Aquí en un caso real, guardarías la URL de la imagen en un servidor.
-            imageUrl: imageUrl, 
+            imageUrl: imageUrl,
             scheduleTime,
             // Y otros datos necesarios para recrear la campaña.
         };
@@ -152,7 +152,7 @@ const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                <button onClick={onCancel} className="text-gray-500 flex items-center hover:text-gray-700 transition">
+                <button onClick={() => navigate('/')} className="text-gray-500 flex items-center hover:text-gray-700 transition">
                     <FaArrowLeft className="mr-2" /> Volver a las campañas
                 </button>
                 <h1 className="text-3xl font-bold text-gray-900">Crear Nueva Campaña</h1>
@@ -197,24 +197,23 @@ const CampaignCreator = ({ onSaveCampaign, onCancel }) => {
             <button
                 onClick={handleSaveAsCampaign}
                 disabled={!isSaveButtonEnabled}
-                className={`w-full mt-8 py-4 rounded-2xl font-bold tracking-wide text-lg transition duration-200 ${
-                    isSaveButtonEnabled
+                className={`w-full mt-8 py-4 rounded-2xl font-bold tracking-wide text-lg transition duration-200 ${isSaveButtonEnabled
                         ? 'bg-apple-yellow text-gray-900 hover:bg-yellow-400 transform hover:scale-105'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
+                    }`}
             >
                 Guardar Campaña
             </button>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                <ContactsTable 
-                    emailList={filteredEmails} 
-                    searchTerm={searchTerm} 
+                <ContactsTable
+                    emailList={filteredEmails}
+                    searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}
                     onAddEmail={handleAddManualEmail}
                 />
             </Modal>
-            
+
             <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
         </div>
     );
