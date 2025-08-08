@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+
+@theme{
+    --color-apple-yellow: #FFD700
+}
