@@ -137,6 +137,7 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => { // 👈 Elimin
                         imageUrl={imageUrl}
                         imageLink={imageLink}
                         emailList={emailList}
+                        payload={payload}
                     />
                     <SendLog
                         logEnvios={logEnvios}
