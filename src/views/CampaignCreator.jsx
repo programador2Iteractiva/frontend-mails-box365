@@ -30,6 +30,7 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
     const [isContactsModalOpen, setContactsModalOpen] = useState(false);
     const [isPreviewModalOpen, setPreviewModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [lastFocusedInput, setLastFocusedInput] = useState('subject');
 
 
     const handleEmailFile = (file) => {
@@ -67,16 +68,26 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
         }
     };
 
-    const handleInsertVariable = useCallback((variable) => {
-        const target = document.activeElement;
-        if (target.id === 'body') {
-            setBody(prevBody => prevBody + `{${variable}}`);
-        } else if (target.id === 'rawHtml') {
-            setRawHtml(prevHtml => prevHtml + `{${variable}}`);
-        } else {
-            toast.info('Haz clic en un campo de texto para insertar la variable.');
+   const handleInsertVariable = useCallback((variable) => {
+        const textToInsert = `{${variable}}`;
+        
+        // Inserta la variable en el último campo que tuvo foco
+        switch (lastFocusedInput) {
+            case 'subject':
+                setPayload(prev => ({ ...prev, subject: prev.subject + textToInsert }));
+                break;
+            case 'body':
+                setBody(prev => prev + textToInsert);
+                break;
+            case 'rawHtml':
+                // Para el editor avanzado, se inserta como texto plano.
+                // El usuario puede luego darle el formato que desee.
+                setRawHtml(prev => prev + textToInsert);
+                break;
+            default:
+                toast.info('Haz clic en un campo de texto (Asunto, Contenido) para insertar la variable.');
         }
-    }, []);
+    }, [lastFocusedInput]); // Depende del último input enfocado
 
     const handleSaveCampaign = () => {
         if (emailList.length === 0) {
@@ -122,22 +133,23 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                     emailListCount={emailList.length}
                     onShowEmails={() => setContactsModalOpen(true)}
                     availableVars={availableVars}
-                    onInsertVariable={handleInsertVariable}
+                    onInsertVariable={handleInsertVariable} // Esta función ahora es más robusta
                 />
                 {/* Columna Derecha */}
-                <CampaignEditor
+               <CampaignEditor
                     payload={payload}
                     setPayload={setPayload}
                     template={template}
                     setTemplate={setTemplate}
                     body={body}
                     setBody={setBody}
+                    rawHtml={rawHtml}
+                    setRawHtml={setRawHtml}
                     setImageUrl={setImageUrl}
                     imageLink={imageLink}
                     setImageLink={setImageLink}
                     onPreview={() => setPreviewModalOpen(true)}
-                    rawHtml={rawHtml}
-                    setRawHtml={setRawHtml}
+                    setLastFocusedInput={setLastFocusedInput} // Pasamos la función para actualizar el foco
                 />
             </div>
 

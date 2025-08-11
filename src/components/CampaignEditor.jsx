@@ -13,9 +13,10 @@ const CampaignEditor = ({
     body, setBody,
     setImageUrl,
     imageLink, setImageLink,
-    onPreview
+    onPreview,
+    setLastFocusedInput // Recibimos la nueva prop
 }) => {
-    
+
     const handleImageFile = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -31,14 +32,14 @@ const CampaignEditor = ({
                     Vista Previa
                 </button>
             </div>
-            
+
             <div>
                 <label className="block text-gray-700 font-medium mb-2">Plantilla</label>
                 <select value={template} onChange={(e) => setTemplate(e.target.value)} className="block w-full px-5 py-3 rounded-xl border border-gray-300">
                     {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
             </div>
-            
+
             <div>
                 <label htmlFor="subject" className="block text-gray-700 font-medium mb-2">Asunto del Correo</label>
                 <input
@@ -46,6 +47,7 @@ const CampaignEditor = ({
                     id="subject"
                     value={payload.subject}
                     onChange={(e) => setPayload({ ...payload, subject: e.target.value })}
+                    onFocus={() => setLastFocusedInput('subject')} // <-- SE AÑADE ESTO
                     className="block w-full px-5 py-3 rounded-xl border border-gray-300"
                     placeholder="Ej. ¡Nueva oferta para ti!"
                 />
@@ -58,6 +60,7 @@ const CampaignEditor = ({
                         id="body"
                         value={body}
                         onChange={(e) => setBody(e.target.value)}
+                        onFocus={() => setLastFocusedInput('body')} // <-- SE AÑADE ESTO
                         className="block w-full px-5 py-3 rounded-xl border border-gray-300"
                         rows="8"
                         placeholder="Escribe aquí... puedes usar las variables de la izquierda."
