@@ -1,6 +1,8 @@
 import React from 'react';
 
-const EmailPreview = ({ imageUrl, imageLink, emailList, payload, template, body }) => {
+const EmailPreview = ({ imageUrl, imageLink, emailList, payload, template, body, rawHtml }) => {
+
+    console.log('3. EmailPreview: Recibiendo la prop rawHtml:', rawHtml);
 
     // 1. HTML base proporcionado por ti.
     // He reemplazado la imagen estática por un marcador de posición {{DYNAMIC_CONTENT}}.
@@ -33,6 +35,10 @@ const EmailPreview = ({ imageUrl, imageLink, emailList, payload, template, body 
 
     // 2. Función que genera solo la parte dinámica del contenido.
     const generateDynamicContent = () => {
+         if (template === 'custom') {
+            return rawHtml;
+        }
+
         const textPart = template.includes('text') ? `<div>${body.replace(/\n/g, '<br />')}</div>` : '';
         let imagePart = '';
 
@@ -75,7 +81,7 @@ const EmailPreview = ({ imageUrl, imageLink, emailList, payload, template, body 
 
             {/* Cuerpo del correo, ahora renderizando la plantilla completa */}
             <div className="p-4 bg-gray-100">
-                 <div dangerouslySetInnerHTML={{ __html: finalHtml }} />
+                <div dangerouslySetInnerHTML={{ __html: finalHtml }} />
             </div>
         </div>
     );

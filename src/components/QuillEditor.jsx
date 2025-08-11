@@ -1,48 +1,53 @@
 import React, { useEffect, useRef } from 'react';
 
-const QuillEditor = ({ value, onChange, onFocus, onBlur }) => {
+const QuillEditor = ({ value, onChange, onFocus }) => {
     const editorRef = useRef(null);
     const quillInstance = useRef(null);
 
     useEffect(() => {
         if (editorRef.current && !quillInstance.current && window.Quill) {
-            // Inicializa la instancia de Quill en el div
+            
+            // --- INICIO DE LA CORRECCIÓN PARA CENTRAR IMÁGENES ---
+            // Le decimos a Quill que use estilos en línea (style="text-align:center") para la alineación.
+            // Esto permite que el centrado se aplique a los contenedores de las imágenes.
+            const AlignStyle = window.Quill.import('attributors/style/align');
+            window.Quill.register(AlignStyle, true);
+            // --- FIN DE LA CORRECCIÓN ---
+
             quillInstance.current = new window.Quill(editorRef.current, {
                 theme: 'snow',
                 modules: {
                     toolbar: [
                         [{ 'header': [1, 2, 3, false] }],
                         ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'align': [] }], // Opción para alinear (izquierda, centro, derecha)
                         [{'list': 'ordered'}, {'list': 'bullet'}],
-                        ['link'],
-                        ['clean'],
-                        ['image', 'code-block']
+                        ['link', 'image', 'code-block'],
+                        ['clean']
                     ],
                 },
             });
 
-            // Sincroniza el contenido inicial
-            if (value) {
-                quillInstance.current.root.innerHTML = value;
-            }
-            
-            // Escucha los cambios del usuario y actualiza el estado de React
             quillInstance.current.on('text-change', (delta, oldDelta, source) => {
                 if (source === 'user') {
-                    onChange(quillInstance.current.root.innerHTML);
+                    const currentHtml = quillInstance.current.root.innerHTML;
+                    onChange(currentHtml);
                 }
             });
         }
-    }, [onChange, value]);
-    
-    // Asegura que el editor se enfoca cuando el contenedor recibe el foco
-    const handleFocus = () => {
-        onFocus();
-        quillInstance.current.focus();
-    };
+    }, [onChange]);
+
+    useEffect(() => {
+        if (quillInstance.current) {
+            const editorHtml = quillInstance.current.root.innerHTML;
+            if (value !== editorHtml) {
+                quillInstance.current.root.innerHTML = value;
+            }
+        }
+    }, [value]);
 
     return (
-        <div onFocus={handleFocus} onBlur={onBlur} tabIndex={0}>
+        <div onFocus={onFocus} tabIndex={0}>
              <div ref={editorRef} />
         </div>
     );

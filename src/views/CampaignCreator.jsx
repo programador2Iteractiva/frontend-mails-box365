@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
@@ -13,7 +13,7 @@ import EmailPreview from '../components/EmailPreview';
 const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
     const navigate = useNavigate();
 
-    // Estado general de la campaña
+    // Estado general de la campaña, inicializado desde props si se está editando
     const [payload, setPayload] = useState(campaignToEdit?.payload || {
         name: "Nueva Campaña",
         subject: "¡Asunto de prueba!",
@@ -22,16 +22,23 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
     });
     const [template, setTemplate] = useState(campaignToEdit?.template || 'text-image');
     const [body, setBody] = useState(campaignToEdit?.body || '');
-    const [rawHtml, setRawHtml] = useState(campaignToEdit?.rawHtml || ''); // Se carga el HTML al editar
+    const [rawHtml, setRawHtml] = useState(campaignToEdit?.rawHtml || '<p>Escribe tu contenido aquí...</p>');
     const [emailList, setEmailList] = useState(campaignToEdit?.emailList || []);
     const [availableVars, setAvailableVars] = useState(campaignToEdit?.availableVars || []);
     const [imageUrl, setImageUrl] = useState(campaignToEdit?.imageUrl || null);
     const [imageLink, setImageLink] = useState(campaignToEdit?.imageLink || "#");
+
+    // Estado para controlar los modales y la búsqueda
     const [isContactsModalOpen, setContactsModalOpen] = useState(false);
     const [isPreviewModalOpen, setPreviewModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+
+    // Estado para la inserción de variables
     const [lastFocusedInput, setLastFocusedInput] = useState('subject');
 
+    useEffect(() => {
+        console.log('2. CampaignCreator: El estado rawHtml se actualizó:', rawHtml);
+    }, [rawHtml]);
 
     const handleEmailFile = (file) => {
         if (file) {
@@ -68,10 +75,9 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
         }
     };
 
-   const handleInsertVariable = useCallback((variable) => {
+    const handleInsertVariable = useCallback((variable) => {
         const textToInsert = `{${variable}}`;
-        
-        // Inserta la variable en el último campo que tuvo foco
+
         switch (lastFocusedInput) {
             case 'subject':
                 setPayload(prev => ({ ...prev, subject: prev.subject + textToInsert }));
@@ -80,14 +86,12 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                 setBody(prev => prev + textToInsert);
                 break;
             case 'rawHtml':
-                // Para el editor avanzado, se inserta como texto plano.
-                // El usuario puede luego darle el formato que desee.
-                setRawHtml(prev => prev + textToInsert);
+                setRawHtml(prev => prev.endsWith('</p>') ? prev.slice(0, -4) + ` ${textToInsert}</p>` : prev + textToInsert);
                 break;
             default:
                 toast.info('Haz clic en un campo de texto (Asunto, Contenido) para insertar la variable.');
         }
-    }, [lastFocusedInput]); // Depende del último input enfocado
+    }, [lastFocusedInput]);
 
     const handleSaveCampaign = () => {
         if (emailList.length === 0) {
@@ -103,7 +107,7 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
             payload,
             template,
             body,
-            rawHtml, // Se guarda el HTML en la campaña
+            rawHtml,
             imageUrl,
             imageLink,
             emailList,
@@ -127,16 +131,14 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Columna Izquierda */}
                 <CampaignControls
                     onFileUpload={handleEmailFile}
                     emailListCount={emailList.length}
                     onShowEmails={() => setContactsModalOpen(true)}
                     availableVars={availableVars}
-                    onInsertVariable={handleInsertVariable} // Esta función ahora es más robusta
+                    onInsertVariable={handleInsertVariable}
                 />
-                {/* Columna Derecha */}
-               <CampaignEditor
+                <CampaignEditor
                     payload={payload}
                     setPayload={setPayload}
                     template={template}
@@ -149,7 +151,7 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                     imageLink={imageLink}
                     setImageLink={setImageLink}
                     onPreview={() => setPreviewModalOpen(true)}
-                    setLastFocusedInput={setLastFocusedInput} // Pasamos la función para actualizar el foco
+                    setLastFocusedInput={setLastFocusedInput}
                 />
             </div>
 
@@ -164,7 +166,6 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                 Guardar Campaña
             </button>
 
-            {/* Modal para la tabla de contactos */}
             <Modal isOpen={isContactsModalOpen} onClose={() => setContactsModalOpen(false)} title="Contactos Cargados">
                 <ContactsTable
                     emailList={filteredEmails}
@@ -174,7 +175,6 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                 />
             </Modal>
 
-            {/* Modal para la previsualización del correo */}
             <Modal isOpen={isPreviewModalOpen} onClose={() => setPreviewModalOpen(false)} title="Vista Previa del Email">
                 <div className="p-4">
                     <EmailPreview
