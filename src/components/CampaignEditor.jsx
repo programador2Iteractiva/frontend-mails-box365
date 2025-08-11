@@ -1,20 +1,22 @@
 import React from 'react';
+import QuillEditor from './QuillEditor'; // Importa el nuevo componente
 
 const templates = [
     { id: 'text', name: 'Solo Texto' },
     { id: 'image', name: 'Imagen' },
     { id: 'image-url', name: 'Imagen + URL' },
     { id: 'text-image', name: 'Texto + Imagen' },
+    { id: 'custom', name: 'Personalizada (Editor Avanzado)' },
 ];
-
 const CampaignEditor = ({
-    payload, setPayload,
+   payload, setPayload,
     template, setTemplate,
     body, setBody,
+    rawHtml, setRawHtml,
     setImageUrl,
     imageLink, setImageLink,
     onPreview,
-    setLastFocusedInput // Recibimos la nueva prop
+    setLastFocusedInput
 }) => {
 
     const handleImageFile = (e) => {
@@ -25,7 +27,7 @@ const CampaignEditor = ({
     };
 
     return (
-        <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200 space-y-6">
+       <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200 space-y-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-semibold text-gray-900">Redactar Email</h2>
                 <button onClick={onPreview} className="bg-gray-800 text-white px-4 py-2 rounded-xl font-medium hover:bg-gray-700">
@@ -39,7 +41,8 @@ const CampaignEditor = ({
                     {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
             </div>
-
+            
+            {/* Campo de Asunto */}
             <div>
                 <label htmlFor="subject" className="block text-gray-700 font-medium mb-2">Asunto del Correo</label>
                 <input
@@ -47,12 +50,24 @@ const CampaignEditor = ({
                     id="subject"
                     value={payload.subject}
                     onChange={(e) => setPayload({ ...payload, subject: e.target.value })}
-                    onFocus={() => setLastFocusedInput('subject')} // <-- SE AÑADE ESTO
+                    onFocus={() => setLastFocusedInput('subject')}
                     className="block w-full px-5 py-3 rounded-xl border border-gray-300"
                     placeholder="Ej. ¡Nueva oferta para ti!"
                 />
             </div>
 
+            {/* Renderizado condicional del editor */}
+            {template === 'custom' && (
+                <div>
+                    <label className="block text-gray-700 font-medium mb-2">Contenido Personalizado</label>
+                    <QuillEditor 
+                        value={rawHtml} 
+                        onChange={setRawHtml} 
+                        onFocus={() => setLastFocusedInput('rawHtml')}
+                    />
+                </div>
+            )}
+            
             {template.includes('text') && (
                 <div>
                     <label htmlFor="body" className="block text-gray-700 font-medium mb-2">Contenido del Email</label>
@@ -60,7 +75,7 @@ const CampaignEditor = ({
                         id="body"
                         value={body}
                         onChange={(e) => setBody(e.target.value)}
-                        onFocus={() => setLastFocusedInput('body')} // <-- SE AÑADE ESTO
+                        onFocus={() => setLastFocusedInput('body')}
                         className="block w-full px-5 py-3 rounded-xl border border-gray-300"
                         rows="8"
                         placeholder="Escribe aquí... puedes usar las variables de la izquierda."
@@ -69,7 +84,7 @@ const CampaignEditor = ({
             )}
 
             {template.includes('image') && (
-                <div className="space-y-4">
+               <div className="space-y-4">
                     <div>
                         <label className="block text-gray-700 font-medium mb-2">Imagen del Correo</label>
                         <input
