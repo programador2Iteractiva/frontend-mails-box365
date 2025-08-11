@@ -1,55 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom'; // 👈 Importa el hook useNavigate
-import axios from 'axios';
-import CampaignSettings from '../components/CampaignSettings';
-import FileUploader from '../components/FileUploader';
-import EmailPreview from '../components/EmailPreview';
-import SendLog from '../components/SendLog';
-import Modal from '../components/Modal';
-import ContactsTable from '../components/ContactsTable';
-import Scheduler from '../components/Scheduler';
-import { FaArrowLeft } from 'react-icons/fa';
 import { saveAs } from 'file-saver';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
+import { FaArrowLeft } from 'react-icons/fa';
 
-const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => { // 👈 Eliminamos onCancel, usaremos useNavigate
-    const navigate = useNavigate(); // 👈 Llama al hook aquí, en el cuerpo del componente
+import CampaignControls from '../components/CampaignControls';
+import CampaignEditor from '../components/CampaignEditor';
+import Modal from '../components/Modal';
+import ContactsTable from '../components/ContactsTable';
+import EmailPreview from '../components/EmailPreview';
 
-    const [payload, setPayload] = useState(campaignToEdit ? campaignToEdit.payload : {
-        campaign_id: 30,
+const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
+    const navigate = useNavigate();
+
+    // Estado general de la campaña
+    const [payload, setPayload] = useState(campaignToEdit?.payload || {
         name: "Nueva Campaña",
+        subject: "¡Asunto de prueba!",
         from: "info@dominio.com",
         reply_to: "contacto@dominio.com",
-        subject: "¡Asunto de prueba!",
     });
-    const [imageUrl, setImageUrl] = useState(campaignToEdit ? campaignToEdit.imageUrl : null);
-    const [imageFile, setImageFile] = useState(null);
-    const [imageLink, setImageLink] = useState(campaignToEdit ? campaignToEdit.imageLink : "#");
-    const [emailList, setEmailList] = useState(campaignToEdit ? campaignToEdit.emailList : []);
-    const [logEnvios, setLogEnvios] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [scheduleTime, setScheduleTime] = useState(campaignToEdit ? campaignToEdit.scheduleTime : null);
-    const [scheduledJobs, setScheduledJobs] = useState([]);
+    const [template, setTemplate] = useState(campaignToEdit?.template || 'text-image');
+    const [body, setBody] = useState(campaignToEdit?.body || '');
+    const [emailList, setEmailList] = useState(campaignToEdit?.emailList || []);
+    const [availableVars, setAvailableVars] = useState(campaignToEdit?.availableVars || []);
+    
+    // Estado de la imagen
+    const [imageUrl, setImageUrl] = useState(campaignToEdit?.imageUrl || null);
+    const [imageLink, setImageLink] = useState(campaignToEdit?.imageLink || "#");
+
+    // Estado de los modales
+    const [isContactsModalOpen, setContactsModalOpen] = useState(false);
+    const [isPreviewModalOpen, setPreviewModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const handleConfigChange = (selectedConfig) => {
-        setPayload({ ...payload, ...selectedConfig });
+    const handleEmailFile = (file) => {
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const data = event.target.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                if (json.length > 0 && 'correos' in json[0]) {
+                    const emails = json.map(row => row.correos).filter(Boolean);
+                    const newEmails = Array.from(new Set([...emailList, ...emails]));
+                    setEmailList(newEmails);
+
+                    const headers = Object.keys(json[0]);
+                    setAvailableVars(headers);
+                    toast.success(`Se cargaron ${emails.length} correos.`);
+                } else {
+                    toast.error("El archivo no tiene la columna 'correos' o está vacío.");
+                }
+            };
+            reader.readAsBinaryString(file);
+        }
     };
 
-    const handleFileUpload = (data) => {
-        if (data.imageFile) {
-            setImageFile(data.imageFile);
-            setImageUrl(URL.createObjectURL(data.imageFile));
-            toast.success(`Imagen "${data.imageFile.name}" cargada.`);
-        }
-        if (data.emailList) {
-            const newEmails = Array.from(new Set([...emailList, ...data.emailList]));
-            setEmailList(newEmails);
-            toast.success(`Se han cargado ${data.emailList.length} correos.`);
-        }
-    };
-    
     const handleAddManualEmail = (newEmail) => {
         if (newEmail && !emailList.includes(newEmail)) {
             setEmailList(prev => [...prev, newEmail]);
@@ -59,113 +71,104 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => { // 👈 Elimin
         }
     };
 
-    const handleDownloadLog = () => {
-        if (logEnvios.length === 0) {
-            toast.warn("No hay un log de envíos para descargar.");
-            return;
-        }
-        const csvData = logEnvios.map(log => ({
-            Correo: log.email,
-            Estado: log.status.includes('✅') ? 'Enviado' : 'Error',
-            Mensaje: log.message || '',
-        }));
-        const csv = Papa.unparse(csvData);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        saveAs(blob, `log_envios_${payload.name.replace(/\s/g, '_')}.csv`);
-        toast.success("Log de envíos descargado exitosamente.");
-    };
-
-    const handleSaveAsCampaign = () => {
-        if (emailList.length === 0 || !imageUrl) {
-            toast.error("La campaña debe tener correos y una imagen.");
+    const handleInsertVariable = useCallback((variable) => {
+        setBody(prevBody => prevBody + `{${variable}}`);
+    }, []);
+    
+    const handleSaveCampaign = () => {
+        if (emailList.length === 0) {
+            toast.error("La campaña debe tener al menos un correo.");
             return;
         }
 
         const newCampaign = {
-            id: campaignToEdit ? campaignToEdit.id : Date.now(),
+            id: campaignToEdit?.id || Date.now(),
             name: payload.name,
             date: new Date().toISOString(),
             contactCount: emailList.length,
             payload,
+            template,
+            body,
+            imageUrl,
             imageLink,
-            imageUrl, 
-            scheduleTime,
-            emailList
+            emailList,
+            availableVars,
         };
 
         onSaveCampaign(newCampaign);
         navigate('/');
     };
 
-    const isSaveButtonEnabled = emailList.length > 0 && imageUrl !== null;
+    const isSaveButtonEnabled = emailList.length > 0;
     const filteredEmails = emailList.filter(email => email.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                {/* 👈 Corrección aquí: Usamos navigate('/') directamente */}
                 <button onClick={() => navigate('/')} className="text-gray-500 flex items-center hover:text-gray-700 transition">
-                    <FaArrowLeft className="mr-2" /> Volver a las campañas
+                    <FaArrowLeft className="mr-2" /> Volver
                 </button>
-                <h1 className="text-3xl font-bold text-gray-900">Crear Nueva Campaña</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Editor de Campañas</h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Columna Izquierda: Configuración y Carga */}
-                <div className="space-y-6">
-                    <CampaignSettings
-                        payload={payload}
-                        setPayload={setPayload}
-                        imageLink={imageLink}
-                        setImageLink={setImageLink}
-                        onConfigChange={handleConfigChange}
-                    />
-                    <FileUploader
-                        onFileUpload={handleFileUpload}
-                        emailListCount={emailList.length}
-                        onShowEmails={() => setIsModalOpen(true)}
-                    />
-                    <Scheduler
-                        scheduleTime={scheduleTime}
-                        setScheduleTime={setScheduleTime}
-                    />
-                </div>
-
-                {/* Columna Derecha: Previsualización y Log */}
-                <div className="space-y-6">
-                    <EmailPreview
-                        imageUrl={imageUrl}
-                        imageLink={imageLink}
-                        emailList={emailList}
-                        payload={payload}
-                    />
-                    <SendLog
-                        logEnvios={logEnvios}
-                        scheduledJobs={scheduledJobs}
-                        onDownloadLog={handleDownloadLog}
-                    />
-                </div>
+                {/* Columna Izquierda */}
+                <CampaignControls
+                    onFileUpload={handleEmailFile}
+                    emailListCount={emailList.length}
+                    onShowEmails={() => setContactsModalOpen(true)}
+                    availableVars={availableVars}
+                    onInsertVariable={handleInsertVariable}
+                />
+                {/* Columna Derecha */}
+                <CampaignEditor
+                    payload={payload}
+                    setPayload={setPayload}
+                    template={template}
+                    setTemplate={setTemplate}
+                    body={body}
+                    setBody={setBody}
+                    setImageUrl={setImageUrl}
+                    imageLink={imageLink}
+                    setImageLink={setImageLink}
+                    onPreview={() => setPreviewModalOpen(true)}
+                />
             </div>
-
+            
             <button
-                onClick={handleSaveAsCampaign}
+                onClick={handleSaveCampaign}
                 disabled={!isSaveButtonEnabled}
                 className={`w-full mt-8 py-4 rounded-2xl font-bold tracking-wide text-lg transition duration-200 ${
                     isSaveButtonEnabled
-                        ? 'bg-apple-yellow text-gray-900 hover:bg-yellow-400 transform hover:scale-105'
+                        ? 'bg-apple-yellow text-gray-900 hover:bg-yellow-400'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
             >
                 Guardar Campaña
             </button>
 
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            {/* Modal para la tabla de contactos */}
+            <Modal isOpen={isContactsModalOpen} onClose={() => setContactsModalOpen(false)} title="Contactos Cargados">
                 <ContactsTable 
                     emailList={filteredEmails} 
                     searchTerm={searchTerm} 
                     setSearchTerm={setSearchTerm}
                     onAddEmail={handleAddManualEmail}
                 />
+            </Modal>
+
+            {/* Modal para la previsualización del correo */}
+            <Modal isOpen={isPreviewModalOpen} onClose={() => setPreviewModalOpen(false)} title="Vista Previa del Email">
+                <div className="p-4">
+                    <EmailPreview
+                        imageUrl={imageUrl}
+                        imageLink={imageLink}
+                        emailList={emailList}
+                        payload={payload}
+                        template={template}
+                        body={body}
+                    />
+                </div>
             </Modal>
             
             <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />

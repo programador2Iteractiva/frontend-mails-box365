@@ -1,7 +1,7 @@
 import React from 'react';
 import * as XLSX from 'xlsx';
 
-const FileUploader = ({ onFileUpload, emailListCount, onShowEmails }) => {
+const FileUploader = ({ onFileUpload, emailListCount, onShowEmails, template }) => {
     const handleEmailFile = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -18,7 +18,7 @@ const FileUploader = ({ onFileUpload, emailListCount, onShowEmails }) => {
             reader.readAsBinaryString(file);
         }
     };
-    
+
     const handleImageFile = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -40,7 +40,7 @@ const FileUploader = ({ onFileUpload, emailListCount, onShowEmails }) => {
     return (
         <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200 space-y-6">
             <h2 className="text-2xl font-semibold text-gray-900">2. Carga de Archivos</h2>
-            
+
             <div className="space-y-4">
                 <div>
                     <div className="flex justify-between items-center mb-2">
@@ -73,6 +73,17 @@ const FileUploader = ({ onFileUpload, emailListCount, onShowEmails }) => {
                         className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
                     />
                 </div>
+            </div>
+
+            <div>
+                <label className="block text-gray-700 font-medium mb-2">Imagen del Correo (.jpg, .png)</label>
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageFile}
+                    disabled={template === 'text'}
+                    className={`block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 ${template === 'text' ? 'cursor-not-allowed opacity-50' : ''}`}
+                />
             </div>
         </div>
     );
