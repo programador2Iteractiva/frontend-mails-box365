@@ -52,11 +52,11 @@ const CampaignDetail = ({ campaignHistory }) => {
                         </div>
                         <div className="p-4 bg-gray-100 rounded-xl">
                             <div className="text-lg font-bold">{new Date(campaign.sentDate).toLocaleString()}</div>
-                            <div className="text-gray-500">Fecha de Envío</div>
+                            <div className="text-gray-500">Fecha de Inicio Envío</div>
                         </div>
                         <div className="p-4 bg-gray-100 rounded-xl">
                             <div className="text-lg font-bold">{new Date(campaign.sentDateFinish).toLocaleString()}</div>
-                            <div className="text-gray-500">Fecha de Finalizacion</div>
+                            <div className="text-gray-500">Fecha de Fin Envío</div>
                         </div>
                     </div>
                 )}

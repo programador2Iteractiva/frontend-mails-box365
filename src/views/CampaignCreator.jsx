@@ -1,8 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
-import { saveAs } from 'file-saver';
-import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { FaArrowLeft } from 'react-icons/fa';
 
@@ -24,17 +22,15 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
     });
     const [template, setTemplate] = useState(campaignToEdit?.template || 'text-image');
     const [body, setBody] = useState(campaignToEdit?.body || '');
+    const [rawHtml, setRawHtml] = useState(campaignToEdit?.rawHtml || ''); // Se carga el HTML al editar
     const [emailList, setEmailList] = useState(campaignToEdit?.emailList || []);
     const [availableVars, setAvailableVars] = useState(campaignToEdit?.availableVars || []);
-    
-    // Estado de la imagen
     const [imageUrl, setImageUrl] = useState(campaignToEdit?.imageUrl || null);
     const [imageLink, setImageLink] = useState(campaignToEdit?.imageLink || "#");
-
-    // Estado de los modales
     const [isContactsModalOpen, setContactsModalOpen] = useState(false);
     const [isPreviewModalOpen, setPreviewModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+
 
     const handleEmailFile = (file) => {
         if (file) {
@@ -72,9 +68,16 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
     };
 
     const handleInsertVariable = useCallback((variable) => {
-        setBody(prevBody => prevBody + `{${variable}}`);
+        const target = document.activeElement;
+        if (target.id === 'body') {
+            setBody(prevBody => prevBody + `{${variable}}`);
+        } else if (target.id === 'rawHtml') {
+            setRawHtml(prevHtml => prevHtml + `{${variable}}`);
+        } else {
+            toast.info('Haz clic en un campo de texto para insertar la variable.');
+        }
     }, []);
-    
+
     const handleSaveCampaign = () => {
         if (emailList.length === 0) {
             toast.error("La campaña debe tener al menos un correo.");
@@ -89,6 +92,7 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
             payload,
             template,
             body,
+            rawHtml, // Se guarda el HTML en la campaña
             imageUrl,
             imageLink,
             emailList,
@@ -132,26 +136,27 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                     imageLink={imageLink}
                     setImageLink={setImageLink}
                     onPreview={() => setPreviewModalOpen(true)}
+                    rawHtml={rawHtml}
+                    setRawHtml={setRawHtml}
                 />
             </div>
-            
+
             <button
                 onClick={handleSaveCampaign}
                 disabled={!isSaveButtonEnabled}
-                className={`w-full mt-8 py-4 rounded-2xl font-bold tracking-wide text-lg transition duration-200 ${
-                    isSaveButtonEnabled
-                        ? 'bg-apple-yellow text-gray-900 hover:bg-yellow-400'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
+                className={`w-full mt-8 py-4 rounded-2xl font-bold tracking-wide text-lg transition duration-200 ${isSaveButtonEnabled
+                    ? 'bg-apple-yellow text-gray-900 hover:bg-yellow-400'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
             >
                 Guardar Campaña
             </button>
 
             {/* Modal para la tabla de contactos */}
             <Modal isOpen={isContactsModalOpen} onClose={() => setContactsModalOpen(false)} title="Contactos Cargados">
-                <ContactsTable 
-                    emailList={filteredEmails} 
-                    searchTerm={searchTerm} 
+                <ContactsTable
+                    emailList={filteredEmails}
+                    searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}
                     onAddEmail={handleAddManualEmail}
                 />
@@ -167,10 +172,11 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                         payload={payload}
                         template={template}
                         body={body}
+                        rawHtml={rawHtml}
                     />
                 </div>
             </Modal>
-            
+
             <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
         </div>
     );
