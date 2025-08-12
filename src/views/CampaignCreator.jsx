@@ -6,15 +6,16 @@ import { FaArrowLeft } from 'react-icons/fa';
 
 import CampaignControls from '../components/CampaignControls';
 import CampaignEditor from '../components/CampaignEditor';
-import CampaignSettings from '../components/CampaignSettings'; // Importamos el componente
+import CampaignSettings from '../components/CampaignSettings';
+import Scheduler from '../components/Scheduler';
 import Modal from '../components/Modal';
 import ContactsTable from '../components/ContactsTable';
 import EmailPreview from '../components/EmailPreview';
-import Scheduler from '../components/Scheduler'; // Importamos el programador
 
 const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
     const navigate = useNavigate();
 
+    // --- ESTADOS (SIN CAMBIOS) ---
     const [payload, setPayload] = useState(campaignToEdit?.payload || {
         name: "Nueva Campaña",
         subject: "¡Asunto de prueba!",
@@ -28,20 +29,17 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
     const [availableVars, setAvailableVars] = useState(campaignToEdit?.availableVars || []);
     const [imageUrl, setImageUrl] = useState(campaignToEdit?.imageUrl || null);
     const [imageLink, setImageLink] = useState(campaignToEdit?.imageLink || "#");
-    const [scheduleTime, setScheduleTime] = useState(null); // Nuevo estado para la programación
-
-    // Estado para controlar los modales y la búsqueda
+    const [scheduleTime, setScheduleTime] = useState(null);
     const [isContactsModalOpen, setContactsModalOpen] = useState(false);
     const [isPreviewModalOpen, setPreviewModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-
-    // Estado para la inserción de variables
     const [lastFocusedInput, setLastFocusedInput] = useState('subject');
 
     useEffect(() => {
         console.log('2. CampaignCreator: El estado rawHtml se actualizó:', rawHtml);
     }, [rawHtml]);
 
+    // --- FUNCIONES (SIN CAMBIOS) ---
     const handleEmailFile = (file) => {
         if (file) {
             const reader = new FileReader();
@@ -114,7 +112,7 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
             imageLink,
             emailList,
             availableVars,
-            scheduleTime
+            scheduleTime,
         };
 
         onSaveCampaign(newCampaign);
@@ -133,41 +131,47 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                 <h1 className="text-3xl font-bold text-gray-900">Editor de Campañas</h1>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <CampaignControls
-                    onFileUpload={handleEmailFile}
-                    emailListCount={emailList.length}
-                    onShowEmails={() => setContactsModalOpen(true)}
-                    availableVars={availableVars}
-                    onInsertVariable={handleInsertVariable}
-                />
-                <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
-                    <CampaignSettings
+            {/* --- NUEVA ESTRUCTURA COMPACTA --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Columna principal para el editor (ocupa 2/3 del espacio) */}
+                <div className="lg:col-span-2">
+                    <CampaignEditor
                         payload={payload}
                         setPayload={setPayload}
                         template={template}
                         setTemplate={setTemplate}
+                        body={body}
+                        setBody={setBody}
+                        rawHtml={rawHtml}
+                        setRawHtml={setRawHtml}
+                        setImageUrl={setImageUrl}
+                        imageLink={imageLink}
+                        setImageLink={setImageLink}
+                        onPreview={() => setPreviewModalOpen(true)}
+                        setLastFocusedInput={setLastFocusedInput}
                     />
                 </div>
-                <Scheduler
-                    scheduleTime={scheduleTime}
-                    setScheduleTime={setScheduleTime}
-                />
-                <CampaignEditor
-                    payload={payload}
-                    setPayload={setPayload}
-                    template={template}
-                    setTemplate={setTemplate}
-                    body={body}
-                    setBody={setBody}
-                    rawHtml={rawHtml}
-                    setRawHtml={setRawHtml}
-                    setImageUrl={setImageUrl}
-                    imageLink={imageLink}
-                    setImageLink={setImageLink}
-                    onPreview={() => setPreviewModalOpen(true)}
-                    setLastFocusedInput={setLastFocusedInput}
-                />
+
+                {/* Columna lateral para controles y configuración (ocupa 1/3) */}
+                <div className="space-y-8">
+                    <CampaignControls
+                        onFileUpload={handleEmailFile}
+                        emailListCount={emailList.length}
+                        onShowEmails={() => setContactsModalOpen(true)}
+                        availableVars={availableVars}
+                        onInsertVariable={handleInsertVariable}
+                    />
+                    <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
+                        <CampaignSettings
+                            payload={payload}
+                            setPayload={setPayload}
+                        />
+                    </div>
+                    <Scheduler
+                        scheduleTime={scheduleTime}
+                        setScheduleTime={setScheduleTime}
+                    />
+                </div>
             </div>
 
             <button
@@ -181,6 +185,7 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                 Guardar Campaña
             </button>
 
+            {/* --- MODALES (SIN CAMBIOS) --- */}
             <Modal isOpen={isContactsModalOpen} onClose={() => setContactsModalOpen(false)} title="Contactos Cargados">
                 <ContactsTable
                     emailList={filteredEmails}
@@ -189,7 +194,6 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                     onAddEmail={handleAddManualEmail}
                 />
             </Modal>
-
             <Modal isOpen={isPreviewModalOpen} onClose={() => setPreviewModalOpen(false)} title="Vista Previa del Email">
                 <div className="p-4">
                     <EmailPreview
