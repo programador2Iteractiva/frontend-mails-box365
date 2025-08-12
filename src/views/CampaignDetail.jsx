@@ -3,6 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import SendLog from '../components/SendLog';
 
+import MessagePieChart from '../components/charts/MessagePieChart';
+import StatusBarsChart from '../components/charts/StatusBarsChart';
+import SendingTrendChart from '../components/charts/SendingTrendChart';
+
 const CampaignDetail = ({ campaignHistory }) => {
     const { id } = useParams();
     const campaign = campaignHistory.find(c => c.id.toString() === id);
@@ -31,6 +35,10 @@ const CampaignDetail = ({ campaignHistory }) => {
                     <button onClick={() => setActiveTab('summary')} className={`py-2 px-4 font-semibold ${activeTab === 'summary' ? 'text-apple-yellow border-b-2 border-apple-yellow' : 'text-gray-500'}`}>
                         Resumen
                     </button>
+                    {/* Nueva pestaña para los gráficos */}
+                    <button onClick={() => setActiveTab('analytics')} className={`py-2 px-4 font-semibold ${activeTab === 'analytics' ? 'text-apple-yellow border-b-2 border-apple-yellow' : 'text-gray-500'}`}>
+                        Estadísticas
+                    </button>
                     <button onClick={() => setActiveTab('log')} className={`py-2 px-4 font-semibold ${activeTab === 'log' ? 'text-apple-yellow border-b-2 border-apple-yellow' : 'text-gray-500'}`}>
                         Log de Envío
                     </button>
@@ -57,6 +65,23 @@ const CampaignDetail = ({ campaignHistory }) => {
                         <div className="p-4 bg-gray-100 rounded-xl">
                             <div className="text-lg font-bold">{new Date(campaign.sentDateFinish).toLocaleString()}</div>
                             <div className="text-gray-500">Fecha de Fin Envío</div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'analytics' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        <div className="lg:col-span-2">
+                            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Tendencia de Envío (Correos cada 5 min)</h3>
+                            <SendingTrendChart campaign={campaign} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Resultados por Mensaje</h3>
+                            <MessagePieChart log={campaign.log || []} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Enviados vs. Errores</h3>
+                            <StatusBarsChart sent={campaign.sentCount} errors={campaign.errorCount} />
                         </div>
                     </div>
                 )}
