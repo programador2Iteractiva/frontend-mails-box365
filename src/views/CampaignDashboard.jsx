@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CampaignList from '../components/CampaignList';
-import CampaignHistory from '../components/CampaignHistory';
+import CampaignList from '../components/dash/CampaignList';
+import CampaignHistory from '../components/history/CampaignHistory';
 import { FaPlus } from 'react-icons/fa';
 
 const CampaignDashboard = ({ campaigns, campaignHistory, onDeleteCampaign, onEditCampaign, onSendCampaign }) => {

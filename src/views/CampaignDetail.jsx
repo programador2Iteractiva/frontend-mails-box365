@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FaArrowLeft, FaDownload } from 'react-icons/fa';
-import SendLog from '../components/SendLog';
+import SendLog from '../components/history/SendLog';
 
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';

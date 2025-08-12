@@ -4,7 +4,7 @@ import Login from './views/Login';
 import CampaignDashboard from './views/CampaignDashboard';
 import CampaignCreator from './views/CampaignCreator';
 import CampaignDetail from './views/CampaignDetail';
-import Navbar from './components/Navbar';
+import Navbar from './components/utils/Navbar';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
