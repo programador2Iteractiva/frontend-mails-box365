@@ -4,13 +4,13 @@ import { ToastContainer, toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
 import { FaArrowLeft } from 'react-icons/fa';
 
-import CampaignControls from '../components/CampaignControls';
-import CampaignEditor from '../components/CampaignEditor';
-import CampaignSettings from '../components/CampaignSettings';
-import Scheduler from '../components/Scheduler';
-import Modal from '../components/Modal';
-import ContactsTable from '../components/ContactsTable';
-import EmailPreview from '../components/EmailPreview';
+import CampaignControls from '../components/contacts/CampaignControls';
+import CampaignEditor from '../components/email/CampaignEditor';
+import CampaignSettings from '../components/email/CampaignSettings';
+import Scheduler from '../components/utils/Scheduler';
+import Modal from '../components/utils/Modal';
+import ContactsTable from '../components/contacts/ContactsTable';
+import EmailPreview from '../components/email/EmailPreview';
 
 const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
     const navigate = useNavigate();

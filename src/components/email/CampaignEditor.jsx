@@ -1,5 +1,5 @@
 import React from 'react';
-import QuillEditor from './QuillEditor'; // Importa el nuevo componente
+import QuillEditor from '../utils/QuillEditor'; // Importa el nuevo componente
 
 const templates = [
     { id: 'text', name: 'Solo Texto' },
