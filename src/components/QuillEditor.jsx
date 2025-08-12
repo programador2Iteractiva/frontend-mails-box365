@@ -5,11 +5,12 @@ const QuillEditor = ({ value, onChange, onFocus }) => {
     const quillInstance = useRef(null);
 
     useEffect(() => {
+        // Asegurarnos de que el editor se inicialice solo una vez
         if (editorRef.current && !quillInstance.current && window.Quill) {
             
             // --- INICIO DE LA CORRECCIÓN PARA CENTRAR IMÁGENES ---
-            // Le decimos a Quill que use estilos en línea (style="text-align:center") para la alineación.
-            // Esto permite que el centrado se aplique a los contenedores de las imágenes.
+            // Le decimos a Quill que use estilos en línea (style) para la alineación.
+            // Esto es más robusto y afecta correctamente a los contenedores de las imágenes.
             const AlignStyle = window.Quill.import('attributors/style/align');
             window.Quill.register(AlignStyle, true);
             // --- FIN DE LA CORRECCIÓN ---
@@ -28,6 +29,7 @@ const QuillEditor = ({ value, onChange, onFocus }) => {
                 },
             });
 
+            // Sincroniza los cambios con el estado de React
             quillInstance.current.on('text-change', (delta, oldDelta, source) => {
                 if (source === 'user') {
                     const currentHtml = quillInstance.current.root.innerHTML;
@@ -37,18 +39,25 @@ const QuillEditor = ({ value, onChange, onFocus }) => {
         }
     }, [onChange]);
 
+    // Actualiza el contenido del editor si el valor del estado cambia desde fuera
     useEffect(() => {
         if (quillInstance.current) {
             const editorHtml = quillInstance.current.root.innerHTML;
             if (value !== editorHtml) {
+                // Guarda la posición del cursor antes de actualizar
+                const selection = quillInstance.current.getSelection();
                 quillInstance.current.root.innerHTML = value;
+                // Restaura la posición del cursor si era posible
+                if (selection) {
+                    quillInstance.current.setSelection(selection);
+                }
             }
         }
     }, [value]);
 
     return (
         <div onFocus={onFocus} tabIndex={0}>
-             <div ref={editorRef} />
+             <div ref={editorRef} style={{ height: '350px' }} />
         </div>
     );
 };
