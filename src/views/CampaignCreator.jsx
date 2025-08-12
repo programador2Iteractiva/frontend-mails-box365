@@ -6,14 +6,15 @@ import { FaArrowLeft } from 'react-icons/fa';
 
 import CampaignControls from '../components/CampaignControls';
 import CampaignEditor from '../components/CampaignEditor';
+import CampaignSettings from '../components/CampaignSettings'; // Importamos el componente
 import Modal from '../components/Modal';
 import ContactsTable from '../components/ContactsTable';
 import EmailPreview from '../components/EmailPreview';
+import Scheduler from '../components/Scheduler'; // Importamos el programador
 
 const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
     const navigate = useNavigate();
 
-    // Estado general de la campaña, inicializado desde props si se está editando
     const [payload, setPayload] = useState(campaignToEdit?.payload || {
         name: "Nueva Campaña",
         subject: "¡Asunto de prueba!",
@@ -27,6 +28,7 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
     const [availableVars, setAvailableVars] = useState(campaignToEdit?.availableVars || []);
     const [imageUrl, setImageUrl] = useState(campaignToEdit?.imageUrl || null);
     const [imageLink, setImageLink] = useState(campaignToEdit?.imageLink || "#");
+    const [scheduleTime, setScheduleTime] = useState(null); // Nuevo estado para la programación
 
     // Estado para controlar los modales y la búsqueda
     const [isContactsModalOpen, setContactsModalOpen] = useState(false);
@@ -112,6 +114,7 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
             imageLink,
             emailList,
             availableVars,
+            scheduleTime
         };
 
         onSaveCampaign(newCampaign);
@@ -137,6 +140,18 @@ const CampaignCreator = ({ onSaveCampaign, campaignToEdit }) => {
                     onShowEmails={() => setContactsModalOpen(true)}
                     availableVars={availableVars}
                     onInsertVariable={handleInsertVariable}
+                />
+                <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
+                    <CampaignSettings
+                        payload={payload}
+                        setPayload={setPayload}
+                        template={template}
+                        setTemplate={setTemplate}
+                    />
+                </div>
+                <Scheduler
+                    scheduleTime={scheduleTime}
+                    setScheduleTime={setScheduleTime}
                 />
                 <CampaignEditor
                     payload={payload}
