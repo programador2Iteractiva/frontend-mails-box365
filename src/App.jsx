@@ -9,78 +9,9 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
 
-// --- DATOS DE EJEMPLO ---
-const DUMMY_CAMPAIGNS = [
-    {
-        id: 1,
-        name: "Campaña de Verano (Ejemplo)",
-        date: new Date('2024-07-15T10:00:00Z').toISOString(),
-        contactCount: 150,
-        payload: {
-            name: "Campaña de Verano (Ejemplo)",
-            subject: "¡Ofertas exclusivas para ti!",
-            from: "ventas@empresa.com",
-            reply_to: "soporte@empresa.com",
-        },
-        template: 'text-image',
-        body: 'Aprovecha nuestros descuentos de hasta el 50009000% en productos seleccionados.',
-        imageUrl: 'https://novonordisk.interactiva.com.co/wp-content/uploads/2025/08/Biomarin.png',
-        imageLink: '#',
-        emailList: Array.from({ length: 150 }, (_, i) => `contacto${i + 1}@ejemplo.com`),
-        availableVars: ['correos', 'nombre'],
-    }
-];
-
-const DUMMY_HISTORY = [
-    {
-        id: 101,
-        name: "Lanzamiento de Producto (Historial)",
-        sentDate: new Date('2025-06-01T14:30:00Z').toISOString(),
-        sentDateFinish: new Date('2024-06-01T18:30:00Z').toISOString(),
-        contactCount: 5,
-        sentCount: 3,
-        errorCount: 2,
-        log: [
-            { email: 'cliente1@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente2@ejemplo.com', status: 'Error', message: 'Buzón lleno' },
-            { email: 'cliente3@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente4@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente5@ejemplo.com', status: 'Error', message: 'Dirección no existe' },
-             { email: 'cliente1@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente2@ejemplo.com', status: 'Error', message: 'Buzón lleno' },
-            { email: 'cliente3@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente4@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente5@ejemplo.com', status: 'Error', message: 'Dirección no existe' },
-             { email: 'cliente1@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente2@ejemplo.com', status: 'Error', message: 'Buzón lleno' },
-            { email: 'cliente3@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente4@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente5@ejemplo.com', status: 'Error', message: 'Dirección no existe' },
-             { email: 'cliente1@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente2@ejemplo.com', status: 'Error', message: 'Buzón lleno' },
-            { email: 'cliente3@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente4@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente5@ejemplo.com', status: 'Error', message: 'Dirección no existe' },
-             { email: 'cliente1@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente2@ejemplo.com', status: 'Error', message: 'Buzón lleno' },
-            { email: 'cliente3@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente4@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente5@ejemplo.com', status: 'Error', message: 'Dirección no existe' },
-             { email: 'cliente1@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente2@ejemplo.com', status: 'Error', message: 'Buzón lleno' },
-            { email: 'cliente3@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente4@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente5@ejemplo.com', status: 'Error', message: 'Dirección no existe' },
-             { email: 'cliente1@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente2@ejemplo.com', status: 'Error', message: 'Buzón lleno' },
-            { email: 'cliente3@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente4@ejemplo.com', status: 'Enviado', message: 'OK' },
-            { email: 'cliente5@ejemplo.com', status: 'Error', message: 'Dirección no existe' },
-            
-        ],
-        payload: { name: "Lanzamiento de Producto (Historial)", subject: "Conoce lo nuevo" },
-    }
-];
+// --- DATOS DE EJEMPLO (AHORA IMPORTADOS) ---
+import { DUMMY_CAMPAIGNS } from './data/campaigns';
+import { DUMMY_HISTORY } from './data/history';
 // --- FIN DE DATOS DE EJEMPLO ---
 
 

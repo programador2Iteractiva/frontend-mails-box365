@@ -3,7 +3,6 @@ import { FaDownload } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 const CampaignHistory = ({ campaigns }) => {
-    // Lógica para descargar el log (simulada)
     const handleDownloadLog = (campaignId) => {
         alert(`Descargando log para la campaña ${campaignId}`);
     };
@@ -31,7 +30,6 @@ const CampaignHistory = ({ campaigns }) => {
                                             {campaign.name}
                                         </Link>
                                     </td>
-                                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{campaign.name}</td> */}
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(campaign.sentDate).toLocaleString()}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{campaign.contactCount}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">{campaign.sentCount}</td>
